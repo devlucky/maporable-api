@@ -16,7 +16,9 @@ func main() {
 	router := httprouter.New()
 	router.GET("/", Ping)
 
+	router.GET("/trips", api.GetTripsList)
 	router.POST("/trips", api.CreateTrip)
+	router.GET("/trips/:id", api.GetTrip)
 
 	log.Println("Listening on 8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
