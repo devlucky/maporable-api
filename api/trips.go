@@ -10,12 +10,8 @@ import (
 	"github.com/devlucky/maporable-api/config"
 )
 
-type CreateTripInput struct {
-	Place string `json:"place"`
-}
-
 func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Adapters) {
-	var input CreateTripInput
+	var input models.Trip
 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&input)
@@ -26,7 +22,7 @@ func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a 
 	}
 	defer r.Body.Close()
 
-	trip, err := models.NewTrip(input.Place)
+	trip, err := models.NewTrip(input.User, input.Country, input.Status, input.StartDate, input.EndDate)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		msg := fmt.Sprintf("Invalid trip parameter: %s", err.Error())
@@ -52,22 +48,6 @@ func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a 
 }
 
 func GetTripsList(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Adapters) {
-	/*
-	page, err := strconv.Atoi(r.URL.Query().Get("page"))
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("The page must be an integer"))
-		return
-	}
-
-	pageSize, err := strconv.Atoi(r.URL.Query().Get("page_size"))
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("The page_size must be an integer"))
-		return
-	}
-	*/
-
 	trips := a.TripRepo.List()
 	jsonTrips, err := json.Marshal(trips)
 	if err != nil {
