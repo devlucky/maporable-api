@@ -7,13 +7,14 @@ import (
 	"encoding/json"
 	"log"
 	"fmt"
+	"github.com/devlucky/maporable-api/config"
 )
 
 type CreateTripInput struct {
 	Place string `json:"place"`
 }
 
-func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Adapters) {
 	var input CreateTripInput
 
 	decoder := json.NewDecoder(r.Body)
@@ -33,9 +34,12 @@ func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-
-	// TODO: Save it
-
+	err = a.TripRepo.Create(trip)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
 
 	jsonTrip, err := json.Marshal(trip)
 	if err != nil {
@@ -47,8 +51,7 @@ func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Write([]byte(jsonTrip))
 }
 
-
-func GetTripsList(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func GetTripsList(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Adapters) {
 	/*
 	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil {
@@ -65,11 +68,7 @@ func GetTripsList(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 	}
 	*/
 
-	// TODO: Get all trips from the database, filtered and paginated
-	trip1, _ := models.NewTrip("sydney")
-	trip2, _ := models.NewTrip("ottawa")
-	trips := [2]*models.Trip{trip1, trip2}
-
+	trips := a.TripRepo.List()
 	jsonTrips, err := json.Marshal(trips)
 	if err != nil {
 		log.Printf("Unexpected error %s when marshaling the trip into JSON", err.Error())
@@ -82,12 +81,15 @@ func GetTripsList(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 }
 
 
-func GetTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func GetTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Adapters) {
 	id := ps.ByName("id")
-	fmt.Printf("id is %s", id)
 
-	// TODO: Get from database
-	trip, _ := models.NewTrip("sydney")
+	trip := a.TripRepo.Get(id)
+	if trip == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	jsonTrip, err := json.Marshal(trip)
 	if err != nil {
 		log.Printf("Unexpected error %s when marshaling the trip into JSON", err.Error())
