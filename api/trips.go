@@ -10,7 +10,7 @@ import (
 	"github.com/devlucky/maporable-api/config"
 )
 
-func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Adapters) {
+func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Config) {
 	var input models.Trip
 
 	decoder := json.NewDecoder(r.Body)
@@ -43,11 +43,12 @@ func CreateTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a 
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(jsonTrip))
 }
 
-func GetTripsList(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Adapters) {
+func GetTripsList(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Config) {
 	trips := a.TripRepo.List()
 	jsonTrips, err := json.Marshal(trips)
 	if err != nil {
@@ -56,12 +57,13 @@ func GetTripsList(w http.ResponseWriter, r *http.Request, ps httprouter.Params, 
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(jsonTrips))
 }
 
 
-func GetTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Adapters) {
+func GetTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *config.Config) {
 	id := ps.ByName("id")
 
 	trip := a.TripRepo.Get(id)
@@ -77,6 +79,7 @@ func GetTrip(w http.ResponseWriter, r *http.Request, ps httprouter.Params, a *co
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(jsonTrip))
 }
